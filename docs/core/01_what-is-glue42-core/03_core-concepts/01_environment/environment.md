@@ -1,27 +1,29 @@
 ## Overview
 
-The Glue42 Core Environment is a set of JS and JSON files which must be hosted at the same domain as your applications in order to have have access to the platform's functionality. This set of files (we call it *environment*) is not application-specific, it is domain-specific.
+The **Glue42 Core** Environment is a set of JavaScript and JSON files. These files must be hosted at the same domain as your applications in order for your applications to have access to **Glue42 Core** functionalities. This set of files is not application-specific, but rather - domain-specific.
 
 The environment consists of:
-- A shared worker used as a central point for all Glue42 Clients to connect to
-- A gateway which carries out the communication between all [**Glue42 Clients**](../glue42-client/index.html)
-- **Optional** configuration file used to define Glue42 Core settings and defaults
 
-The Glue42 Core environment requirements are:
-- All files must be hosted on the same domain as your applications
-- All files must be served from a path easily accessible by all [**Glue42 Clients**](../glue42-client/index.html).
+- a [shared worker](https://developer.mozilla.org/en-US/docs/Web/API/SharedWorker) that functions as a central point to which all [**Glue42 Clients**](../glue42-client/index.html) to connect;
+- a Glue42 Gateway that handles the communication between all [**Glue42 Clients**](../glue42-client/index.html);
+- an *optional* configuration file that is used to define **Glue42 Core** settings and defaults;
 
-### Setting up environment
+The environment requires the following:
 
-Setting up is much easier than it seems. We have created a [**CLI**](../cli/index.html) tool which makes the process of setting up your development environment and bundling the Glue42 Core environment for deployment easy and painless. We have prepared detailed guides for setting up the environment using the CLI for [**single application**](../../../getting-started/setting-environment/single-application/index.html) and [**multiple application**](../../../getting-started/setting-environment/multiple-applications/index.html) projects.
+- all files must be hosted on the same domain as your applications;
+- all files must be served from a path easily accessible by all [**Glue42 Clients**](../glue42-client/index.html);
 
-Those of you who need fine-grained control over the development and deployment of their project, can head over to the [**Manual Setup**](../../../getting-started/setting-environment/manual/index.html) section. There we have prepared a detailed guide for manually setting up the environment.
+## Environment Setup
+
+The **Glue42 Core** [**CLI**](../cli/index.html) tool greatly facilitates and simplifies the process of setting up your development environment and bundling it for deployment. For more information, see the detailed environment setup guides for [**single**](../../../getting-started/setting-environment/single-application/index.html) and [**multi application**](../../../getting-started/setting-environment/multiple-applications/index.html) projects.
+
+If you need fine-grained control over the development and deployment of your project, see the [**Manual Setup**](../../../getting-started/setting-environment/manual/index.html) section where you can find a detailed guide for manually setting up the environment.
 
 ## Configuration File
 
-This is a simple JSON file containing general Glue42 Core settings, gateway settings and shared configuration used by all [**Glue42 Clients**](../glue42-client/index.html) on this domain.
+This is a simple JSON file containing general **Glue42 Core** settings, Glue42 Gateway settings and shared configuration settings used by all [**Glue42 Clients**](../glue42-client/index.html) on this domain.
 
-If this file is not present, then all Glue42 Clients will initialize using default settings (more on that in the [**Glue42 Client**](../glue42-client/index.html) section) and will try to connect to the shared worker at the default location at `/glue/worker.js`. The shared worker will also try to connect to the gateway at the default location at `/glue/gateway.js`.
+If this file is not present, then all Glue42 Clients will initialize using the default settings and will try to connect to the shared worker at the default location at `/glue/worker.js`. The shared worker will also try to connect to the Glue42 Gateway at the default location at `/glue/gateway.js`.
 
 If you provide a configuration file, then it **must** be named `glue.config.json`. The interface of the config is:
 
@@ -107,4 +109,4 @@ The shared worker will use the `glue.config.json` to get user-defined settings f
 
 ## Gateway
 
-The gateway is the backbone of the Glue42 Core environment. It facilitates all communication between all Glue42 Clients and is initialized by the shared worker. There are a few configuration options for the gateway, all exposed via the `glue.config.json` object.
+The gateway is the backbone of the **Glue42 Core** environment. It facilitates all communication between all Glue42 Clients and is initialized by the shared worker. There are a few configuration options for the gateway, all exposed via the `glue.config.json` object.

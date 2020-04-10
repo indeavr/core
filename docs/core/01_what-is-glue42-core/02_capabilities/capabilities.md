@@ -1,6 +1,6 @@
 ## Overview
 
-Glue42 Core gives you the tools to enhance your traditional web apps and take your PWA apps to the next level. And all of this without requiring your users to install any additional software.
+**Glue42 Core** gives you the tools to enhance your traditional web apps and take your PWA apps to the next level. And all of this without requiring your users to install any additional software.
 
 ## Interop
 
