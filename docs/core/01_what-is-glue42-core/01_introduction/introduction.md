@@ -6,7 +6,7 @@ In industries and businesses that depend on tens (even hundreds) of different ap
 
 ## High Level Structure
 
-A **Glue42 Core** project consists of an [**Environment**](../core-concepts/environment/index.html) and one or more [**Clients**](../core-concepts/glue42-client/index.html), all of which share the same origin - protocol, host and port.
+A **Glue42 Core** project consists of a [**Glue42 Environment**](../core-concepts/environment/index.html) and one or more [**Glue42 Clients**](../core-concepts/glue42-client/index.html), all of which share the same origin - protocol, host and port. The client applications connect to the environment through the [**Glue42 Web**](../../../reference/core/latest/glue42%20web/index.html) library.
 
 ### Environment
 
@@ -22,6 +22,10 @@ The [**Glue42 Core CLI**](../core-concepts/cli/index.html) is a development tool
 - set up your development environment;
 - host your applications under the same host and port by either serving them from the file system or proxying to a live server that listens on `localhost`;
 - bundle the **Glue42 Core** Environment in a package ready for deployment;
+
+### Glue42 Web Library
+
+The [**Glue42 Web**](../../../reference/core/latest/glue42%20web/index.html) library connects the client applications to the environment. It offer sets of APIs through which the connected applications can share data and control window behavior. For more information, see the [**Capabilities**](../capabilities/index.html) section.
 
 ## Requirements
 

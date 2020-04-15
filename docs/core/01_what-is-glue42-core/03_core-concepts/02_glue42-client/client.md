@@ -1,22 +1,31 @@
 ## Overview
 
-We call a "Glue42 Client" every application which initializes the `@glue42/web` library and thus connects to the [**Glue42 Core Environment**](../environment/index.html). On a single domain there could be one or more Glue42 Clients connected to the same [**Glue42 Core Environment**](../environment/index.html), which gives them full access to the interop, window and contexts functionality offered by the platform.
+A **Glue42 Client** is every application which initializes the [**Glue42 Web**](../../../../reference/core/latest/glue42%20web/index.html) library and connects to the [**Glue42 Core Environment**](../environment/index.html). There could be one or more Glue42 Clients connected to the same Glue42 Core Environment on a single domain, which gives them full access to the [Interop](../../../../reference/core/latest/interop/index.html), [Window Management](../../../../reference/core/latest/windows/index.html) and [Shared Contexts](../../../../reference/core/latest/shared%20contexts/index.html) functionalities offered by the **Glue42 Core** platform.
 
-A Glue42 Client can be any JS application written using Vanilla JS, React, Angular or any other framework.
+A Glue42 Client can be any web application using JavaScript, React, Angular or any other web framework.
 
 ## Initializing a Glue42 Client
 
-To "initialize" a client, means to connect to the [**Glue42 Core Environment**](../environment/index.html) using the `@glue42/web` library. We have prepared a more detailed guides on how do that using:
-- [**Vanilla JS**](../../../getting-started/setting-application/javascript/index.html)
-- [**React**](../../../getting-started/setting-application/react/index.html)
+Initializing a client application means to connect it to the [**Glue42 Core Environment**](../environment/index.html) using the [**Glue42 Web**](../../../../reference/core/latest/glue42%20web/index.html) library. 
 
-We are not going to overlap the explanations there, instead we will get in-depth on how we can configure this initialization and why would we want to do that. Regardless of whether you use Vanilla JS or our React library, the configuration is done using two **optional** elements, and we will cover both here:
-- [Glue42Web.Config](../../../../reference/core/latest/glue42%20web/index.html)
-- `glue.config.json`
+Regardless of the web framework you use, you have to initialize the Glue42 Web library by invoking the exposed `GlueWeb()` factory function. It accepts an *optional* [`Config`](../../../../reference/core/latest/glue42%20web/index.html#!Config) object in which you can specify options regarding the shared worker, the Glue42 Gateway, as well as options related to saving and restoring the application window layout and context:
 
-## Glue42Web.Config
+```javascript
+const initOptions = {
+    worker: "./lib/worker.js",
+    layouts: {
+        autoRestore: true,
+        autoSaveWindowContext: true
+    }
+};
 
-Regardless of whether you use the `@glue42/web` library directly or our [**React**](../../../getting-started/setting-application/react/index.html) library, the initialization is done by invoking a factory function exposed by the libraries. This factory function accepts an **optional** configuration object of type `Glue42Web.Config`. Full details on the Glue42 Web API can be found at the [API reference](../../../../reference/core/latest/glue42%20web/index.html) page, however here we will explain the config object in more details.
+// Attach a `glue` object to the `window` object and access the Glue42 Web APIs through it.
+window.glue = await GlueWeb(initOptions);
+```
+
+The section below explains how you can configure the initialization of the library and why you may need to do this.
+
+*More detailed information on how to initialize the Glue42 Web library depending on the framework you are using, you can find in the [**JavaScript**](../../../getting-started/setting-application/javascript/index.html) and [**React**](../../../getting-started/setting-application/react/index.html) guides on how to set up your application.*
 
 The interface of Glue42Web.Config looks like this:
 
