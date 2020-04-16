@@ -37,9 +37,9 @@ This is an *optional* JSON file containing a [`Config`](../../../../reference/co
 
 Each Glue42 Client app can initialize the [Glue42 Web](../../../../reference/core/latest/glue42%20web/index.html) library with its own [`Config`](../../../../reference/core/latest/glue42%20web/index.html#!Config) object which will override the default settings specified in the `glue.config.json` file (see [Initializing a Glue42 Client](../glue42-client/index.html#initializing_a_glue42_client)).
 
-If a `glue.config.json` file is not present, then all Glue42 Clients will initialize using the default settings and will try to connect to the shared worker at the default location at `/glue/worker.js`. The shared worker will also try to connect to the Glue42 Gateway at the default location at `/glue/gateway.js`.
+If a `glue.config.json` file is not present, then all Glue42 Clients will initialize using the default library settings and will try to connect to the shared worker at the default location at `/glue/worker.js`. The shared worker will also try to connect to the Glue42 Gateway at the default location at `/glue/gateway.js`.
 
-Below is the default configuration:
+Below you can see the default content and settings in the `glue.config.json` file:
 
 ```json
 {

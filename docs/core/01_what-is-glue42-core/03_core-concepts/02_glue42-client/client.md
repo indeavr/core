@@ -1,70 +1,61 @@
 ## Overview
 
-A **Glue42 Client** is every application which initializes the [**Glue42 Web**](../../../../reference/core/latest/glue42%20web/index.html) library and connects to the [**Glue42 Core Environment**](../environment/index.html). There could be one or more Glue42 Clients connected to the same Glue42 Core Environment on a single domain, which gives them full access to the [Interop](../../../../reference/core/latest/interop/index.html), [Window Management](../../../../reference/core/latest/windows/index.html) and [Shared Contexts](../../../../reference/core/latest/shared%20contexts/index.html) functionalities offered by the **Glue42 Core** platform.
+A **Glue42 Client** is every application which initializes the [**Glue42 Web**](../../../../reference/core/latest/glue42%20web/index.html) library and connects to the [**Glue42 Environment**](../environment/index.html). There could be one or more Glue42 Clients connected to the same Glue42 Core Environment on a single domain, which gives them full access to the [Interop](../../../../reference/core/latest/interop/index.html), [Window Management](../../../../reference/core/latest/windows/index.html) and [Shared Contexts](../../../../reference/core/latest/shared%20contexts/index.html) functionalities offered by the **Glue42 Core** platform.
 
 A Glue42 Client can be any web application using JavaScript, React, Angular or any other web framework.
 
 ## Initializing a Glue42 Client
 
-Initializing a client application means to connect it to the [**Glue42 Core Environment**](../environment/index.html) using the [**Glue42 Web**](../../../../reference/core/latest/glue42%20web/index.html) library. 
+Initializing a Glue42 Client means initializing the [**Glue42 Web**](../../../../reference/core/latest/glue42%20web/index.html) library which connects the client application to the [**Glue42 Environment**](../environment/index.html). The library is initialized with several settings related to the names and locations of the [**Glue42 Environment**](../environment/index.html) files, the Glue42 Gateway configuration, as well as application window layout and context save and restore options. The settings used for the initialization of the GLue42 Web library can be:
 
-Regardless of the web framework you use, you have to initialize the Glue42 Web library by invoking the exposed `GlueWeb()` factory function. It accepts an *optional* [`Config`](../../../../reference/core/latest/glue42%20web/index.html#!Config) object in which you can specify options regarding the shared worker, the Glue42 Gateway, as well as options related to saving and restoring the application window layout and context:
-
-```javascript
-const initOptions = {
-    worker: "./lib/worker.js",
-    layouts: {
-        autoRestore: true,
-        autoSaveWindowContext: true
-    }
-};
-
-// Attach a `glue` object to the `window` object and access the Glue42 Web APIs through it.
-window.glue = await GlueWeb(initOptions);
-```
-
-The section below explains how you can configure the initialization of the library and why you may need to do this.
+- the default built-in library settings;
+- settings from the *optional* `glue.config.json` file that will override the default library settings;
+- settings from the *optional* [`Config`](../../../../reference/core/latest/glue42%20web/index.html#!Config) object passed to the [factory function](#factory_function) during initialization that will override the built-in library settings and/or the settings in the `glue.config.json` file;
 
 *More detailed information on how to initialize the Glue42 Web library depending on the framework you are using, you can find in the [**JavaScript**](../../../getting-started/setting-application/javascript/index.html) and [**React**](../../../getting-started/setting-application/react/index.html) guides on how to set up your application.*
 
-The interface of Glue42Web.Config looks like this:
+### Factory Function
+
+Regardless of the web framework you use, you have to initialize the Glue42 Web library by invoking the exposed `GlueWeb()` factory function. It accepts an *optional* [`Config`](../../../../reference/core/latest/glue42%20web/index.html#!Config) object in which you can specify settings regarding the [**Glue42 Environment**](../environment/index.html) files (the *optional* `glue.config.json` file and the shared worker script), as well as settings related to saving and restoring the application window layout and context.
+
+Below is an example of initializing the Glue42 Web library with the default settings:
 
 ```javascript
-interface Glue42Web.Config {
-    worker?: string;
-    layouts?: {
-        autoRestore?: boolean;
-        autoSaveWindowContext?: boolean;
-    };
-    extends?: string | false;
-}
+// Attach the object returned from the factory function to the `window` object 
+// in order to access the Glue42 Web APIs through it.
+window.glue = await GlueWeb();
 ```
 
-The **extends** property can be used to disable fetching `glue.config.json` (by setting it to `false`) or to set a location of the file, different from the default (`/glue/glue.config.json`). This is advisable when you decide not to use a `glue.config.json`.
+### Default and Common Configuration
 
-**Note** that if you set a different location for `glue.config.json`, then you need to make sure that the `worker.js` ([**Glue42 Core Environment**](../environment/index.html)) is located next to the config.
-**Note** that if you set **extends** to `false`, then by default all clients will try to connect to the worker at `/glue/worker.js`. You need to set the **worker** property, if you want to overwrite the default.
+When no custom initialization options are passed to the factory function, the Glue42 Web library is initialized with the common settings from the `glue.config.json` file (if present) or with its own built-in defaults.
 
-The **layouts** property enables or disables auto-saving/restoring of windows' location and context on close.
+#### Default Settings
 
-## Glue.Config.JSON
+Below are the default settings in the `glue.config.json` file (which are also the Glue42 Web library built-in defaults):
 
-We have covered the `glue.config.json` in the [**Glue42 Core Environment**](../environment/index.html) section where we explained all of it's properties. We have also explained how you can use this config to extend parts of the [**Glue42 Core Environment**](../environment/index.html) in the [**Single Application**](../../../getting-started/setting-environment/single-application/index.html) setup guide.
-
-Right now we are interested in what can this config object do to help the Glue42 Clients. The interface of `glue.config.json` is:
-
-```javascript
-interface Glue42CoreConfig {
-    glue?: Glue42Web.Config;
-    gateway?: GatewayConfig;
-}
-```
-
-We are interested in the `glue` property, which is of type [Glue42Web.Config](../../../../reference/core/latest/glue42%20web/index.html). The [Glue42Web.Config](../../../../reference/core/latest/glue42%20web/index.html) defined in property `glue` will be used (unless explicitly told not to) by all clients on the domain as a base config. This base config can be extended by each client and is helpful so that you don't have to declare the same object in all of your clients.
-
-Example:
 ```json
-// glue.config.json
+{
+    "glue": {
+        "worker": "./worker.js",
+        "layouts": {
+            "autoRestore": false,
+            "autoSaveWindowContext": false
+        }
+    },
+    "gateway": {
+        "location": "./gateway.js"
+    }
+}
+```
+
+*For a detailed explanation of all settings in the optional `glue.config.json` file, see the [Environment: Configuration File](../environment/index.html#configuration_file) section.* 
+
+#### Common Settings
+
+You can use the `glue.config.json` file to set common configurations for you Glue42 Client applications. This is helpful when you want all or most of your apps to have the same settings when initializing the Glue42 Web library. This way, you avoid passing the same configuration object multiple times to the Glue42 Web library when initializing your Glue42 Client apps. For instance, if your [**Glue42 Environment**](../environment/index.html) files are at their default locations (so no configuration is necessary for that), but you want the layout and context of your windows to be saved, you need to set the following in the `glue.config.json` file:
+
+```json
 {
     "glue": {
         "layouts": {
@@ -74,7 +65,54 @@ Example:
     }
 }
 ```
-[Glue42Web.Config](../../../../reference/core/latest/glue42%20web/index.html)
-Without any further configuration all Glue42 Clients will now auto-restore and auto-save their window contexts by default. If you wish a specific client to ignore this default, you can either:
-- overwrite these properties in the client's [Glue42Web.Config](../../../../reference/core/latest/glue42%20web/index.html) object
-- set `{"extends": false}` in the client's [Glue42Web.Config](../../../../reference/core/latest/glue42%20web/index.html) object
+
+This configuration will now be used by all Glue42 Client applications that do not provide a [`Config`](../../../../reference/core/latest/glue42%20web/index.html#!Config) object during initialization and will override the built-in Glue42 Web library defaults.
+
+### Custom Configuration
+
+There are several scenarios where you may want to tweak the default configuration of the [**Glue42 Web**](../../../../reference/core/latest/glue42%20web/index.html) library:
+
+- You don't have a `glue.config.json` file and want your Glue42 Client applications to connect to the [**Glue42 Environment**](../environment/index.html) with different custom settings.
+
+- You have a `glue.config.json` with default settings which work for most of your Glue42 Client apps, but you want some of them to use custom settings.
+
+- Your Glue42 Environment files are not located in the default directory - e.g., you decide to keep them in a `"/lib"` folder, instead of in the default `"/glue"` folder. In this case, it is mandatory that you specify the custom path to the Environment files when initializing the Glue42 Web library in your client applications. 
+
+The *optional* [`Config`](../../../../reference/core/latest/glue42%20web/index.html#!Config) object, which you can pass to the `GlueWeb()` factory function, has the following properties:
+
+| Property | Type | Description | Required | Default |
+|----------|------|-------------|----------|---------|
+| `extends` | `string | false` | This property can be used by a [Glue42 Client](../glue42-client/index.html)) during initialization of the Glue42 Web library to specify a URL for the location of the `glue.config.json` file (e.g., if you want to change the default location of the configration file). The library will fetch it and use it to extend the built-in configuration defaults. It is recommended to set this to `false`, if no configuration file is available. Also set to `false` if you don't want the Glue42 Client app to use the defaults from an existing configuration file. *Note that if you define a custom URL for the configuration file, then the library will expect to find a `worker.js` file in the same directory.* | No | `"/glue/glue.config.json"` |
+| `worker` | `string` | Specifies a shared worker location. It is recommended for a Glue42 Client app to use this property to define a custom location for the shared worker script, if `extends` has been set to `false` or if the `glue.config.json` file is not hosted at the default location. *Note that the shared worker script **must** be in the same directory as the `glue.config.json` file (if you have provided such file).* | No | `"./worker.js"` |
+| `layouts` | `object` | Enable or disable auto restoring windows and/or auto saving window context. | No | `-` |
+| `layouts.autoRestore` | `boolean` | If `true`, the set of windows opened by the application will be saved (in local storage) when the window is closed and restored when the application is started again. The saved data about each window includes URL, bounds and window context. | No | `false` |
+| `layouts.autoSaveWindowContext` | `boolean` | If `true`, will automatically save the context of the window. | No | `false` |
+
+*Note that if you set `extends` to `false`, then, by default, all clients will try to connect to the worker at `/glue/worker.js`. You need to set the `worker` property, if you want to override the default setting.*
+
+Below is an initialization example with custom settings for the Glue42 Web library:
+
+```javascript
+const initOptions = {
+
+    // Specify a path to an existing `glue.config.json`, 
+    // or set to `false` if you don't have a configuration file or 
+    // you don't want your app to use the default settings from it.
+    extends: false,
+
+    // Specify a path to the shared worker script when your
+    // Environment files are not in the default location,
+    // or if you decide to rename the `worker.js` file to something else.
+    worker: "./lib/worker.js",
+
+    // Specify whether to save the application windows layout and context.
+    layouts: {
+        autoRestore: true,
+        autoSaveWindowContext: true
+    }
+};
+
+// Attach the object returned from the factory function to the `window` object 
+// in order to access the Glue42 Web APIs through it.
+window.glue = await GlueWeb(initOptions);
+```
