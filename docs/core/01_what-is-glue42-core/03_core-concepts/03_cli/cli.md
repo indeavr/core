@@ -1,84 +1,102 @@
 ## Overview
 
-The Glue42 CLI is a command line tool designed to simplify your development process with Glue42 Core. This tool boils down to three simple commands:
-- `init` - Quickly set up your workspace with the necessary configs and dependencies
-- `serve` - Launches a dev server, which acts as a reverse proxy for your locally served applications
-- `build` - Bundles all the necessary Glue42 Core files into one convenient folder ready for deploy
+The **Glue42 CLI** is a command line tool designed to simplify your development process with **Glue42 Core**. The CLI provides the following basic commands:
+
+- `init` - quickly sets up your project with the necessary configurations and dependencies;
+- `serve` - launches a dev server which acts as a reverse proxy for your locally served applications;
+- `build` - bundles all the necessary **Glue42 Core** files into one convenient folder that is ready for deployment;
+- `version` - returns the currently installed version of the Glue42 CLI;
 
 ## Installation
 
-Install the Glue42 CLI using the npm package manager:
+Installing the Glue42 CLI using `npm`:
 
-```javascript
+```cmd
 npm install -g @glue42/cli-core
 ```
 
-Next we will take a look at how to use the CLI, by going on the available commands.
-
 ## Commands
 
-The Glue42 Core CLI offers three simple commands with no additional parameters. All the necessary configuration options are taken either from the `glue.config.dev.json` file in the current working directory or from the defaults.
+The Glue42 Core CLI offers several basic commands with no additional parameters. All the necessary configuration options are taken either from the `glue.config.dev.json` file in the current working directory (see [Configuration](#configuration) below) or from the built-in defaults.
 
-### Init
+Below are described the available commands:
 
 ```javascript
 gluec init
 ```
 
-This command will set up Glue42 Core for the current directory. This means that the CLI will:
-- npm install (or npm init --yes beforehand, if no package.json was found) the [**Glue42 Core Environment**](../environment/index.html) files
-- create `glue.config.dev.json` with default settings and correct paths for all Glue42 Core assets
-- create `glue.config.json` with default settings for easy overwrite
+The `init` command will set up **Glue42 Core** for the current directory. This means that the CLI will:
 
-### Serve
+- install with `npm` (and perform `npm init --yes` beforehand if no `package.json` file is found) all necessary dependencies that provide the [**Glue42 Environment**](../environment/index.html) files;
+- create a `glue.config.dev.json` file with default settings and correct paths for all **Glue42 Core** assets;
+- create a `glue.config.json` file with default settings so that you can easily customize (if you need to) the settings in it. The CLI will copy this file to the output directory when bundling your **Glue42 Core** files for deployment.
 
 ```javascript
 gluec serve
 ```
 
-This command launches the dev server using the configuration provided in the `glue.config.dev.json` file.
-
-### Build
+The `serve` command launches a dev server using the configuration provided in the `glue.config.dev.json` file.
 
 ```javascript
 gluec build
 ```
 
-This command collects all the necessary Glue42 Core assets and bundles them in a `./glue` directory, ready for deployment.
+The `build` command collects all the necessary **Glue42 Core** assets and bundles them in a `./glue` directory ready for deployment.
+
+```javascript
+gluec version
+```
+
+The `version` command returns the currently installed version of the Glue42 CLI.
 
 ## Configuration
 
-The Glue42 CLI requires a file named `glue.config.dev.json` to be available in the current working directory (the directory from which the CLI commands are called). This file contains tool settings and other configurations which allows it to correctly serve your applications and compose the final Glue42 Core bundle.
+The configuration settings for the Glue42 CLI are located in the `glue.config.dev.json` file that is automatically created when initializing your **Glue42 Core** project with the `init` command. This file must be located at top-level of the working directory from which the CLI commands are executed. The settings and configurations in this file allow the Glue42 CLI to correctly serve your applications and compose the final **Glue42 Core** bundle ready for production.
 
-Options that specify files can be given as absolute paths, or as paths relative to the configuration file.
+Below is the default configuration in the `glue.config.dev.json` file:
 
-The interface of the config object looks like this:
-```javascript
-interface GlueDevConfig {
-    glueAssets?: GlueAssets;
-    server?: {
-        settings?: ServerSettings;
-        apps: ServerApp[];
-        sharedAssets?: SharedAsset[];
-    };
-    logging?: "full" | "dev";
+```json
+{
+    "glueAssets": {
+        "gateway": {
+            "location": "./node_modules/@glue42/gateway-web/web/gateway-web.js"
+        },
+        "worker": "./node_modules/@glue42/worker-web/dist/worker.js",
+        "config": "./glue.config.json",
+        "route": "/glue"
+    },
+    "server": {
+        "settings": {
+            "port": 4242,
+            "disableCache": true
+        },
+        "apps": [],
+        "sharedAssets": []
+    },
+    "logging": "default"
 }
 ```
 
-### GlueAssets
+Options that specify file locations can be set as absolute paths or as paths relative to the configuration file.
 
-`glueAssets` is optional and defines the locations of all scripts and configs part of the [**Glue42 Core Environment**](../environment/index.html). These settings are used by the `serve` command to correctly host all required files and by the `build` command to correctly compose your Glue42 Core bundle. It has the following properties:
+### Properties and Settings
 
-|Property|Type|Description|Default|
-|--------|----|-----------|-------|
-|`worker`|`string`|**Optional** The location of the @glue42/worker-web dist JS file| Defaults to: "./node_modules/@glue42/worker-web/dist/worker.js" |
-|`gateway`|`object`|**Optional**| - |
-|`gateway.location`|`string`|**Optional** The location of the @glue42/gateway-web dist JS file| Defaults to: "./node_modules/@glue42/gateway-web/web/gateway-web.js" |
-|`gateway.gwLogAppender`|`string`|**Optional** The location of a custom Gateway log appender file.  | no default |
-|`config`|`string`|**Optional** The location of the glue.config.json file | Defaults to: "./glue.config.json" |
-|`route`|`string`|**Optional** The base route where the [**Glue42 Core Environment**](../environment/index.html) files will be served by the dev server | Defaults to: "/glue" |
+Below are described all available properties and settings in the `glue.config.dev.json` file.
 
-Example:
+- #### glueAssets
+
+*Optional*. Defines the locations of all scripts and configurations that are part of the [**Glue42 Environment**](../environment/index.html). These settings are used by the `serve` command to correctly host all required files and also by the `build` command, to correctly compose your **Glue42 Core** bundle. It has the following properties:
+
+| Property | Type | Description | Required | Default |
+|----------|------|-------------|----------|---------|
+| `worker` | `string` | The location of the shared worker script file. | No | `"./node_modules/@glue42/worker-web/dist/worker.js"` |
+| `gateway.location` | `string`| The location of the Glue42 Gateway script file. | No | `"./node_modules/@glue42/gateway-web/web/gateway-web.js"` |
+| `gateway.gwLogAppender` | `string` | The location of a [custom log appender file](../../../getting-started/setting-environment/advanced/index.html#extending_the_gateway_logging) for the Glue42 Gateway. | No | `-` |
+| `config` | `string`| The location of the `glue.config.json` file. | No | `"./glue.config.json"` |
+| `route` | `string` | The base route where the [**Glue42 Environment**](../environment/index.html) files will be served by the dev server. | No | `"/glue"` |
+
+In the example below, the user has created a `/lib` directory and has decided to put there the deployment-ready files of the shared worker and the Glue42 Gateway. The Glue42 CLI will use these locations (for serving the files during development and for building the final **Glue42 Core** bundle) and will fail with an error if any of the files is missing. The user has also changed the default `route` to `"/shared/glue"`. This can be useful for keeping all shared resources (like images, scripts, styles, etc.) and all **Glue42 Core** files under the same base path. However, now all [**Glue42 Clients**](../glue42-client/index.html) need to be instructed where to find the [**Glue42 Environment**](../environment/index.html) files (see [Initializing a Glue42 Client: Custom Configuration](../glue42-client/index.html#initializing_a_glue42_client-custom_configuration)).
+
 ```json
 {
     "glueAssets": {
@@ -93,11 +111,7 @@ Example:
 }
 ```
 
-In this example, the user has a `lib` directory where he has put the built dist files of the `@glue42/worker-web` and `@glue42/gateway-web` packages. The CLI will use these locations (for serving and building) and will fail with an error if any of the files is not found.
-
-Here the user has also overwritten the default `route` to `"/shared/glue"`. This could be useful, if the user wishes to keep all shared resources like images, scripts, styles, etc and Glue42 Core files under the same base path. However now all [**Glue42 Clients**](../glue42-client/index.html) need to be instructed where to find the [**Glue42 Core Environment**](../environment/index.html) files. For detailed information on how to do that head over to the [**Glue42 Clients**](../glue42-client/index.html) section.
-
-### Server
+- #### server
 
 `server` is required when using the `serve` command and defines various command-specific settings.
 
@@ -195,7 +209,7 @@ In this example the user declares a directory `common` which contains shared fil
 - `http://localhost:4242/favicon.ico`
 
 
-### Logging
+- #### logging
 
 `logging` is an optional property and specifies the level of logging for the CLI.
 
