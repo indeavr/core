@@ -21,6 +21,8 @@ The Glue42 Core CLI offers several basic commands with no additional parameters.
 
 Below are described the available commands:
 
+- #### init
+
 ```javascript
 gluec init
 ```
@@ -30,6 +32,8 @@ The `init` command will set up **Glue42 Core** for the current directory. This m
 - install with `npm` (and perform `npm init --yes` beforehand if no `package.json` file is found) all necessary dependencies that provide the [**Glue42 Environment**](../environment/index.html) files;
 - create a `glue.config.dev.json` file with default settings and correct paths for all **Glue42 Core** assets;
 - create a `glue.config.json` file with default settings so that you can easily customize (if you need to) the settings in it. The CLI will copy this file to the output directory when bundling your **Glue42 Core** files for deployment.
+
+- #### serve
 
 ```javascript
 gluec serve
@@ -41,7 +45,11 @@ The `serve` command launches a dev server using the configuration provided in th
 gluec build
 ```
 
+- #### build
+
 The `build` command collects all the necessary **Glue42 Core** assets and bundles them in a `./glue` directory ready for deployment.
+
+- #### version
 
 ```javascript
 gluec version
@@ -113,16 +121,18 @@ In the example below, the user has created a `/lib` directory and has decided to
 
 - #### server
 
-`server` is required when using the `serve` command and defines various command-specific settings.
+*Optional*. This property is required only if you want to use the `serve` command. Defines command-specific settings and has the following properties:
 
-`server.settings` defines dev server-specific settings:
+- `server.settings` - *optional* object that defines settings for the dev server and has the following properties:
 
-|Property|Type|Description|Default|
-|--------|----|-----------|-------|
-|`port`|`number`|**Optional** The port at which the dev server will listen| Defaults to: 4242 |
-|`disableCache`|`boolean`|**Optional** Toggles wether to disable server cache or not| Defaults to: true |
+| Property | Type | Description | Required | Default |
+|----------|------|-------------|----------|---------|
+| `port` | `number` | The port at which the dev server will listen. | No | `4242` |
+| `disableCache` | `boolean` | Whether to disable or enable server cache. | No | `true` |
 
-Example:
+
+In the example dev server configuration below, the user has changed the port number to `9292` and has decided to enable server cache:
+
 ```json
 {
     "glueAssets": ...,
@@ -136,19 +146,19 @@ Example:
 }
 ```
 
+- `server.apps` - a **required** array of objects that define how the dev server should serve your apps - from a local directory or proxy to a `localhost`. Defaults to an empty array. An app object has the following properties:
 
-`server.apps` is an array of objects which define how the dev server should serve your apps: from a local directory or proxy to a localhost. The app object has the following properties:
+| Property | Type | Description | Required | Default |
+|----------|------|-------------|----------|---------|
+| `route` | `string` | The URL from which to serve the app. | Yes | `-` |
+| `localhost` | `object`| Used when your app is already served on `localhost` and the dev server should proxy to it. | No | `-` |
+| `localhost.port` | `number` | The port at which listens the server that is already serving your app. | Yes | `-` |
+| `localhost.spa` | `boolean` | Flags whether your app is a Single Page Application or not. | No | `true` |
+| `file` | `object` | Used when you want your app to be served from the file system. | No | `-` |
+| `file.path` | `string` | The path to the directory where your app is located. | Yes | `-` |
 
-|Property|Type|Description|Default|
-|--------|----|-----------|-------|
-|`route`|`string`|**Required** The route where to serve the app | no default |
-|`localhost`|`{port: number; spa?: boolean}`| Used when your app is already served on localhost and the dev server should proxy to it |no default|
-|`localhost.port`|`number`|**Required** The port at which the server serving your app listens to| no default |
-|`localhost.spa`|`boolean`|**Optional** Toggles whether your app is a Single Page Application| Defaults to: true |
-|`file`|`object`| Used when your app is not served and the dev server should serve it from the file system |no default|
-|`file.path`|`string`|**Required** The location of your app's directory| no default |
+In the example below, the user has two applications. One of the applications is a SPA app (the `localhost.spa` property is not present, but it defaults to `true`) and is already served at port 3000. The dev server will proxy to this SPA app served at `http://localhost:3000` and will serve it at `http://localhost:4242/`. The other application, located in the `./another-app` directory, will be served from the file system at `http://localhost:4242/another-app`.
 
-Example:
 ```json
 {
     "glueAssets": ...,
@@ -161,9 +171,9 @@ Example:
                 }
             },
             {
-                "route": "/apptwo",
+                "route": "/another-app",
                 "file": {
-                    "path": "./apptwo-dist"
+                    "path": "./another-app"
                 }
             }
         ]
@@ -172,18 +182,15 @@ Example:
 }
 ```
 
-In this example, the user has two applications which he needs to be served:
-- At `http://localhost:4242` the dev server will proxy to the app served at `http://localhost:3000`
-- At `http://localhost:4242/apptwo` the dev server will serve the app located in `./apptwo-dist`
+- `sharedAssets` - an *optional* array of objects describing assets shared between your applications that you want to be served. Each object has the following properties:
 
-`sharedAssets` is an array of objects describing assets shared between your applications, so that the dev server can serve them. Each object has the following properties:
+| Property | Type | Description | Required | Default |
+|----------|------|-------------|----------|---------|
+| `route` | `string` | The URL at which to serve the shared asset. | Yes | `-` |
+| `path` | `string` | The location of your shared asset. | Yes | `-` |
 
-|Property|Type|Description|Default|
-|--------|----|-----------|-------|
-|`route`|`string`|**Required** The route where to serve the shared asset| no default |
-|`path`|`string`|**Required** The location of your shared asset| no default |
+In the example below, the user declares a `/common` directory which contains shared files. This directory will be served at `http://localhost:4242/common`. The user also defines a single shared file named `favicon.ico` and located in the root project directory. It will be served at `http://localhost:4242/favicon.ico`.
 
-Example:
 ```json
 {
     "glueAssets": ...,
@@ -204,20 +211,15 @@ Example:
 }
 ```
 
-In this example the user declares a directory `common` which contains shared files and also a single common file `favicon.ico`. They will be served at:
-- `http://localhost:4242/common`
-- `http://localhost:4242/favicon.ico`
-
-
 - #### logging
 
-`logging` is an optional property and specifies the level of logging for the CLI.
+This is an *optional* property that specifies the level of logging for the CLI. When omitted or set to `"default"`, the CLI will output informational logs and errors *only* to the console. Other possible settings are:
 
-When omitted the CLI will output informational logs and errors **only** to the console. Other possible settings are:
-- `dev` - Again outputs only to the console, but this time includes trace information too.
-- `full` - Outputs everything (info, trace, errors) to the console and to the log file at `./glue.core.cli.log`
+- `"dev"` - outputs only to the console, but includes trace information too;
+- `"full"` - outputs everything (info, trace, errors) to the console *and* to a log file named `glue.core.cli.log` located at the root project directory.
 
-Example:
+In the example below, the user has set the logging to `"dev"` in order for trace information to also be included in the log output to the console:
+
 ```json
 {
     "glueAssets": ...,
