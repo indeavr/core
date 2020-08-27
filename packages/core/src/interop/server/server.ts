@@ -219,6 +219,81 @@ export default class Server {
         await this.removeMethodsOrStreams([methodToBeRemoved]);
     }
 
+    public async registerChunking(methodDefinition: string | Glue42Core.AGM.MethodDefinition, callbacks:
+        ((data: string, doneArgs: Glue42Core.AGM.ChunkingDoneArgs, caller: Glue42Core.AGM.Instance)
+            => void)
+        | Glue42Core.AGM.ChunkingCallbacks): Promise<void> {
+        if (!methodDefinition) {
+            return Promise.reject(Error(`No method definition provided ! ${methodDefinition}`));
+        }
+
+        let handlers: Glue42Core.AGM.ChunkingCallbacks;
+        if (typeof callbacks === "function") {
+            handlers = { onDone: callbacks };
+        } else if (typeof callbacks === "object") {
+            if (typeof callbacks.onDone !== "function" && typeof callbacks.onChunk !== "function") {
+                return Promise.reject(Error("Please provider at least one callback function (onChunk / onDone)"));
+            }
+            handlers = callbacks;
+        }
+
+        const resultData: { [id: string]: string } = {};
+
+        const handleChunk = async (args: object, caller: Glue42Core.AGM.Instance, successCallback: (args?: object) => void, errorCallback: (error?: string | object) => void): Promise<any> => {
+            const {
+                id,
+                cookie,
+                hasMore,
+                data,
+                totalLength,
+                length,
+                fileName,
+                dataFormat,
+                // step,
+                // stepsLeft,
+            } = args as Glue42Core.AGM.ChunkingArgs;
+
+            // if (!success) {
+            //     throw Error(`Error in handling chunks of data, msg: ${errorMessage}`);
+            // TODO: decide on error handling strategy
+            // return;
+            // }
+
+            const currData64: string = resultData[id];
+
+            resultData[id] = (currData64 || "").concat(data);
+
+            if (typeof handlers.onChunk === "function") {
+                const res = await handlers.onChunk(args as Glue42Core.AGM.ChunkingArgs, caller);
+                if (!res) {
+                    successCallback();
+                } else {
+                    errorCallback(res);
+                }
+            }
+
+            if (hasMore === false) {
+                if (totalLength === -1 || length === totalLength) {
+                    if (typeof handlers.onDone === "function") {
+                        const dataStr = resultData[id];
+
+                        const doneArgs = { totalLength, cookie, dataFormat, fileName };
+
+                        handlers.onDone(dataStr, doneArgs, caller);
+
+                        delete resultData[id];
+                    }
+                } else {
+                    // TODO: add logging and real error handling
+                    // tslint:disable-next-line:no-console
+                    console.error(`Total lenght is ${totalLength} but lenght is ${length}`);
+                }
+            }
+        };
+
+        await this.registerAsync(methodDefinition, handleChunk);
+    }
+
     private async unregisterWithPredicate(filterPredicate: (methodDefinition: Glue42Core.AGM.MethodDefinition) => ServerMethodInfo, forStream?: boolean) {
         const methodsOrStreamsToRemove = this.serverRepository.getList()
             .filter((sm) => filterPredicate(sm.definition))

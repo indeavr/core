@@ -171,9 +171,13 @@ export namespace Glue42Core {
      */
     export interface CustomLogger {
         debug(message?: any, ...optionalParams: any[]): void;
+
         error(message?: any, ...optionalParams: any[]): void;
+
         info(message?: any, ...optionalParams: any[]): void;
+
         log(message?: any, ...optionalParams: any[]): void;
+
         warn(message?: any, ...optionalParams: any[]): void;
     }
 
@@ -349,6 +353,7 @@ export namespace Glue42Core {
          * @default "best"
          */
         export type InstanceTarget = "best" | "all" | "skipMine" | Instance | Instance[];
+
         /**
          * @docmenuorder 1
          */
@@ -385,6 +390,18 @@ export namespace Glue42Core {
              * To return a result, you must call the `success` callback, or the `error` callback for errors.
              */
             registerAsync<T = any>(name: string | MethodDefinition, handler: (args: T, caller: Instance, successCallback: (args?: T) => void, errorCallback: (error?: string | object) => void) => void): Promise<void>;
+
+            /** Used with large data file streaming */
+            registerChunking(methodDefinition: string | Glue42Core.AGM.MethodDefinition, callbacks:
+                ((data: string, doneArgs: Glue42Core.AGM.ChunkingDoneArgs, caller: Glue42Core.AGM.Instance)
+                    => void)
+                | Glue42Core.AGM.ChunkingCallbacks): Promise<void>;
+
+            /**  */
+            invokeChunking(methodName: string, data: string | object, options: SendChunkOptions): Promise<void>;
+
+            /**  */
+            createChunkingJob(methodName: string, target?: Glue42Core.AGM.InstanceTarget): Glue42Core.AGM.ChunkingJob;
 
             /**
              * Unregisters an Interop method.
@@ -587,6 +604,7 @@ export namespace Glue42Core {
              */
             reject(reason?: string): void;
         }
+
         /** Optional handlers that can be supplied when creating streams. */
         export interface StreamOptions {
 
@@ -627,7 +645,9 @@ export namespace Glue42Core {
              * @param key Branch key.
              */
             branches(): StreamBranch[];
+
             branches(key: string): StreamBranch | undefined;
+
             branches(key?: string): StreamBranch | StreamBranch[] | undefined;
 
             /**
@@ -661,6 +681,7 @@ export namespace Glue42Core {
              */
             push(data: object): void;
         }
+
         /** An object describing a subscription to an Interop stream. */
         export interface StreamSubscription {
 
@@ -776,6 +797,56 @@ export namespace Glue42Core {
 
             /** Returns all servers that provide the method. */
             getServers?(): Instance[];
+        }
+
+        /**  */
+        export interface ChunkingCallbacks {
+            onChunk?: (args: ChunkingArgs, caller: Instance) => any;
+            onDone?: (data: string, doneArgs: ChunkingDoneArgs, caller: Instance) => any;
+        }
+
+        /**  */
+        export interface ChunkingArgs {
+            id: string;
+            data: string;
+            hasMore?: boolean;
+            totalLength: number;
+            fileName?: string;
+            length: number;
+            cookie?: string;
+            chunkIndex: number;
+            chunksLeft: number;
+            dataFormat?: string;
+        }
+
+        /**  */
+        export interface ChunkingDoneArgs {
+            totalLength: number;
+            cookie?: string;
+            dataFormat?: string;
+            fileName?: string;
+        }
+
+        export interface SendChunkOptions {
+            target?: InstanceTarget;
+            chunkSize?: number;
+            cookie?: string;
+            fileName?: string;
+            dataFormat?: string;
+        }
+
+        export interface LargeDataSendChunkOptions {
+            target?: InstanceTarget;
+            cookie?: string;
+            dataFormat?: string;
+            fileName?: string;
+            hasMore?: boolean;
+        }
+
+        export interface ChunkingJob {
+            id: string;
+            totalChunksSent: number;
+            sendChunk: (chunkData: string | object, options: Glue42Core.AGM.LargeDataSendChunkOptions) => Promise<void>;
         }
 
         /** An object describing a filter matching one or more Interop methods. */
@@ -970,12 +1041,14 @@ export namespace Glue42Core {
              * Protocol version of the current connection.
              */
             protocolVersion: number;
+
             /**
              * Send a new message using the connection
              *
              * @ignore
              */
             send(message: object, options?: SendMessageOptions): Promise<void>;
+
             /**
              * Subscribe for messages. Returns an object that can be used to unsubscribe
              *
@@ -985,6 +1058,7 @@ export namespace Glue42Core {
                 type: string;
                 id: number;
             };
+
             /**
              * Cancel subscription for message types
              *
@@ -1037,6 +1111,7 @@ export namespace Glue42Core {
 
             reconnect(): Promise<void>;
         }
+
         /**
          * GW3 domain session
          *
@@ -1045,28 +1120,34 @@ export namespace Glue42Core {
         export interface GW3DomainSession {
             peerId: string;
             domain: string;
+
             /**
              * Joins the domain.
              */
             join(options?: object): Promise<object>;
+
             /**
              * Leaves the domain.
              */
             leave(): Promise<void>;
+
             /**
              * Subscribe for join events (for the specific domain).
              * The wasReconnect flag indicates if this is auto join after connection drop
              */
             onJoined(callback: (wasReconnect: boolean) => void): any;
+
             /**
              * Subscribe for leave events (for the specific domain).
              */
             onLeft(callback: () => void): any;
+
             /**
              * Send a message to GW.
              * A promise that is resolved when a success result for the is received or rejected if the GW returns an error
              */
             send<T>(msg: object, tag?: object, options?: SendMessageOptions): Promise<T>;
+
             /**
              * Use this to send a message to GW if you don't care about the result.
              * You may pass requestId or it will be generated internally
@@ -1075,12 +1156,16 @@ export namespace Glue42Core {
                 request_id?: string;
                 [key: string]: any;
             }): void;
+
             /**
              * Subscribe for messages from GW
              */
             on<T>(type: string, callback: (msg: T) => void): void;
+
             loggedIn(callback: (() => void)): void;
+
             connected(callback: (server: string) => void): void;
+
             disconnected(callback: () => void): void;
         }
 
@@ -1093,6 +1178,7 @@ export namespace Glue42Core {
         export interface GW3Client {
             send(msg: object): void;
         }
+
         /** @ignore */
         export interface SendMessageOptions {
             skipPeerId?: boolean;
@@ -1116,6 +1202,7 @@ export namespace Glue42Core {
              */
             types: string[];
         }
+
         /**
          * @ignore
          */

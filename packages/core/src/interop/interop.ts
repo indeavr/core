@@ -110,6 +110,21 @@ export default class Interop implements Glue42Core.AGM.API {
         return this.server.unregister(methodFilter);
     }
 
+    public invokeChunking(methodName: string, data: string | object, settings: Glue42Core.AGM.SendChunkOptions) {
+        return this.client.invokeChunking(methodName, data, settings);
+    }
+
+    public createChunkingJob(methodName: string, target?: Glue42Core.AGM.InstanceTarget): Glue42Core.AGM.ChunkingJob {
+        return this.client.createChunkingJob(methodName, target);
+    }
+
+    public registerChunking(methodDefinition: string | Glue42Core.AGM.MethodDefinition, callbacks:
+        ((data: string, doneArgs: Glue42Core.AGM.ChunkingDoneArgs, caller: Glue42Core.AGM.Instance)
+            => void)
+        | Glue42Core.AGM.ChunkingCallbacks): Promise<void> {
+        return this.server.registerChunking(methodDefinition, callbacks);
+    }
+
     public registerAsync(methodDefinition: string | Glue42Core.AGM.MethodDefinition, callback: (args: any, caller: Glue42Core.AGM.Instance, successCallback: (args?: any) => void, errorCallback: (error?: string | object) => void) => void): Promise<void> {
         return this.server.registerAsync(methodDefinition, callback);
     }

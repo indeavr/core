@@ -12,6 +12,8 @@ import { rejectAfter } from "../helpers/promiseHelpers";
 import InvocationResult = Glue42Core.AGM.InvocationResult;
 import MethodDefinition = Glue42Core.AGM.MethodDefinition;
 import Method = Glue42Core.Interop.Method;
+import shortid from "shortid";
+import LargeDataSendChunkOptions = Glue42Core.Interop.LargeDataSendChunkOptions;
 
 export enum InvokeStatus {
     Success = 0,
@@ -371,6 +373,132 @@ export default class Client {
 
         // I would call this
         return promisify(getInvokePromise(), success, error);
+    }
+
+    public async invokeChunking(methodName: string, data: string | object, options: Glue42Core.AGM.SendChunkOptions): Promise<void> {
+        if (!methodName) {
+            return Promise.reject(Error("Please provide a methodName"));
+        }
+
+        if (!data) {
+            return Promise.reject(Error("Please provide the data you want to chunk and send as either a json or string"));
+        }
+
+        let fullData: string;
+
+        if (typeof data === "string") {
+            fullData = data;
+        } else {
+            fullData = JSON.stringify(data);
+        }
+
+        let chunkSize = options?.chunkSize || 51200;
+
+        const chunkToArray = (str: string, size: number): string[] => {
+            const R: string[] = [];
+            for (let i = 0; i < str.length; i += size) {
+                R.push(str.slice(i, i + size));
+            }
+            return R;
+        };
+
+        chunkSize = Math.min(chunkSize, fullData.length);
+        const chunks = chunkToArray(fullData, chunkSize);
+
+        let step = 0;
+        let length = 0;
+
+        const uid = shortid.generate();
+
+        const allErrors = [];
+        while (step < chunks.length) {
+            // tslint:disable-next-line:no-console
+            const dataToSend = chunks[step];
+            length += dataToSend.length;
+            const stepsLeft = chunks.length - (step + 1);
+
+            const invokeArgs: Glue42Core.Interop.ChunkingArgs = {
+                id: uid,
+                data: dataToSend,
+                fileName: options?.fileName,
+                cookie: options?.cookie,
+                hasMore: stepsLeft > 0,
+                totalLength: fullData.length,
+                length,
+                chunkIndex: step,
+                chunksLeft: stepsLeft,
+                dataFormat: options?.dataFormat,
+            };
+
+            const result = await this.invoke(methodName, invokeArgs, options?.target);
+
+            const errors = result.all_errors;
+            if (errors && errors.length > 0) {
+                // TODO: extend with a better error handling strategy
+                const successfulCalls = result.all_return_values;
+                if (!successfulCalls || successfulCalls.length === 0) {
+                    return Promise.reject(`All invocations failed at chunkIndex: ${step}: ${errors}`);
+                }
+                errors.forEach((err) => {
+                    allErrors.push({ chunkIndex: step, errMessage: err });
+                });
+            }
+
+            step++;
+        }
+
+        // TODO: add better return types (the combination of all the chunk invokcations ... failedNumber, successNumber, instancesSendTO?? etc)
+    }
+
+    public createChunkingJob(methodName: string, target?: Glue42Core.AGM.InstanceTarget): Glue42Core.AGM.ChunkingJob {
+        // TODO: already existing job ?
+        const uid = shortid.generate();
+
+        let step = 0;
+        let length = 0;
+
+        const sendChunk = async (chunkData: string | object, options?: Glue42Core.AGM.LargeDataSendChunkOptions) => {
+            let dataToSend: string;
+
+            if (typeof chunkData === "string") {
+                dataToSend = chunkData;
+            } else {
+                dataToSend = JSON.stringify(chunkData);
+            }
+
+            length += dataToSend.length;
+            const invokeArgs: Glue42Core.Interop.ChunkingArgs = {
+                id: uid,
+                data: dataToSend,
+                fileName: options?.fileName,
+                cookie: options?.cookie,
+                hasMore: (options?.hasMore !== undefined) ? options?.hasMore : true,
+                totalLength: -1,
+                length,
+                chunkIndex: step,
+                chunksLeft: -1,
+            };
+
+            const result = await this.invoke(methodName, invokeArgs, options?.target || target);
+
+            const errors = result.all_errors;
+            if (errors && errors.length > 0) {
+                // TODO: extend with a better error handling strategy
+                const successfulCalls = result.all_return_values;
+                if (!successfulCalls || successfulCalls.length === 0) {
+                    return Promise.reject(`All invocations failed at chunkIndex: ${step}: ${errors}`);
+                }
+                // errors.forEach((err) => {
+                //     allErrors.push({ chunkIndex: step, errMessage: err });
+                // });
+            }
+
+            step++;
+        };
+
+        const job = { id: uid, sendChunk, totalChunksSent: step };
+
+        return job;
     }
 
     private getInvocationResultObj(invocationResults: InvokeResultMessage[], method: MethodDefinition, calledWith: object): InvocationResult<any> {
