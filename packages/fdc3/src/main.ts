@@ -133,9 +133,6 @@ const fdc3Factory = (): Glue42FDC3DesktopAgent => {
             }, waitForMs);
             await (window as WindowType).fdc3GluePromise;
 
-            const event = new Event("fdc3Ready");
-            window.dispatchEvent(event);
-
             clearTimeout(timeout);
         },
         version
