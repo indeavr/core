@@ -1,7 +1,7 @@
 import createDesktopAgent from "./agent";
 import Glue, { Glue42 } from "@glue42/desktop";
 import { Glue42Web } from "@glue42/web";
-import { isNotInElectron, waitFor, fetchTimeout, isGlue42Electron } from "./utils";
+import { isInElectron, waitFor, fetchTimeout, isGlue42Electron } from "./utils";
 import { version } from "../package.json";
 import { WindowType } from "./types/windowtype";
 import { Glue42GD, Glue42GDOriginalGlue } from "./types/glue42gd";
@@ -44,7 +44,7 @@ const setupGlue42Core = (): void => {
         });
 };
 
-const setupGlue42Enterprise = (isInBrowser: boolean = false): void => {
+const setupGlue42Enterprise = (isInBrowser = false): void => {
     if (isInBrowser) {
         const config = (window as WindowType).glue42EnterpriseConfig;
         if (config) {
@@ -88,7 +88,7 @@ const setupGlue42Enterprise = (isInBrowser: boolean = false): void => {
 };
 
 const setupGlue = (): void => {
-    if (isNotInElectron && !isGlue42Electron) {
+    if (!isInElectron && !isGlue42Electron) {
         if ((window as WindowType).glue42EnterpriseConfig) {
             // enterprise in browser
             setupGlue42Enterprise(true);
@@ -101,7 +101,7 @@ const setupGlue = (): void => {
 };
 
 const connectToRemoteSources = (): void => {
-    if (isNotInElectron) {
+    if (!isInElectron) {
         (window as WindowType).fdc3GluePromise.then(() => {
             const validRemoteSources = (window as WindowType).remoteSources?.filter((remoteSource) => typeof remoteSource.url === "string" && remoteSource.url !== "") || [];
 
